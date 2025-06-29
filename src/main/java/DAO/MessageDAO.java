@@ -19,20 +19,39 @@ public class MessageDAO {
   * If the creation of the message is not successful, the response status should be 400. (Client error)
   */
 
-    public Message createNewMessage(Message mess){
+    public Message createNewMessage(Message msg){
+        
+        if(msg == null || msg.getMessage_text().isBlank() || msg.getMessage_text().length() > 255) {
+            return null;
+        }
         
         Connection connection = ConnectionUtil.getConnection();
         try{
-            String sql = "INSERT INTO message (posted_by, message_text, time_posted_epoch) VALUES (?,?,?);";
-            PreparedStatement ps = connection.prepareStatement(sql);
+            // Check if posted_by account exists
+            String sql = "SELECT * FROM account WHERE account_id = ?;";
+            PreparedStatement Ps = connection.prepareStatement(sql);
 
-            ps.setInt(1, mess.getPosted_by());
-            ps.setString(2, mess.getMessage_text());
-            ps.setLong(3, mess.getTime_posted_epoch());
+            Ps.setInt(1, msg.getPosted_by());
+            ResultSet rsCheck = Ps.executeQuery();
+            if (!rsCheck.next()) {
+                return null;
+            }
+
+            String sql2 = "INSERT INTO message (posted_by, message_text, time_posted_epoch) VALUES (?,?,?);";
+            PreparedStatement ps = connection.prepareStatement(sql2, Statement.RETURN_GENERATED_KEYS);
+
+            ps.setInt(1, msg.getPosted_by());
+            ps.setString(2, msg.getMessage_text());
+            ps.setLong(3, msg.getTime_posted_epoch());
 
             ps.executeUpdate();
 
-            return mess;
+            ResultSet pkeys = ps.getGeneratedKeys();
+            if (pkeys.next()) {
+                msg.setMessage_id(pkeys.getInt(1));
+            }
+
+            return msg;
         }
         catch(SQLException e){
             System.out.println(e.getMessage());
@@ -60,7 +79,8 @@ public class MessageDAO {
 
             ResultSet rs = ps.executeQuery();
             while(rs.next()){
-                Message msg = new Message(rs.getInt("posted_by"), 
+                Message msg = new Message(rs.getInt("message_id"),
+                                          rs.getInt("posted_by"), 
                                           rs.getString("message_text"),
                                           rs.getLong("time_posted_epoch"));
                 messages.add(msg);                          
@@ -134,7 +154,7 @@ public class MessageDAO {
             System.out.print(e.getMessage());
         }
 
-        return null;
+        return msg;
     }
 
     /** 
@@ -151,6 +171,10 @@ public class MessageDAO {
 
     public Message updateMessageById(String msg, int id){
         
+        if(msg == null || msg.isBlank() || msg.length() > 255) {
+            return null;
+        }
+
         Connection connection = ConnectionUtil.getConnection();
         try{
             String sql = "UPDATE message SET message_text=? WHERE message_id=?;";
@@ -199,21 +223,13 @@ public class MessageDAO {
                 messages.add(msg);                          
             }
 
-        return messages;
-            
+            return messages;
+
         }
         catch(SQLException e){
             System.out.print(e.getMessage());
         }
 
-        return null;
+        return messages;
     }
-
-
-
-
-
-
-
-
 }
