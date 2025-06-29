@@ -33,7 +33,7 @@ public class AccountService {
 /*
  * Method to provide user login using accountDAO object
  */
-    public String userLogin(Account acc){
+    public Account userLogin(Account acc){
 
         return accountDAO.userLogin(acc);
 
