@@ -2,7 +2,6 @@ package DAO;
 
 import java.util.*;
 import java.sql.*;
-import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 
 import Model.Account;
 import Model.Message;
@@ -23,8 +22,25 @@ public class AccountDAO {
 
     public Account insertNewAccount(Account acc){
 
+        if (acc == null || acc.getUsername().isBlank() || acc.getPassword().length() < 4) {
+            return null;
+        }
+
         Connection connection = ConnectionUtil.getConnection();
         try{
+            // CHECKING IF USERNAME ALREADY EXISTS
+            String checksql = "SELECT * FROM account WHERE username = ?;";
+            PreparedStatement checkps = connection.prepareStatement(checksql);
+
+            checkps.setString(1, acc.getUsername());
+            
+            ResultSet checkrs = checkps.executeQuery();
+            if(checkrs.next()) {
+                return null; // Username already exists
+            }
+
+
+
             //SQL statement and logic
             String sql = "INSERT INTO account (username, password) VALUES (?, ?);";
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
@@ -32,7 +48,6 @@ public class AccountDAO {
             //preparedStatements's setString methods
             ps.setString(1, acc.getUsername());
             ps.setString(2, acc.getPassword());
-
             ps.executeUpdate();
 
             ResultSet pkeyResultSet = ps.getGeneratedKeys();
@@ -60,31 +75,28 @@ public class AccountDAO {
   * If the login is not successful, the response status should be 401. (Unauthorized)
   */
 
-    public String userLogin(Account account){
+    public Account userLogin(Account account){
+        
+        if (account == null) return null;
+
         Connection connection = ConnectionUtil.getConnection();
-        Account acc2 = null;
 
         try{
-            String sql = "SELECT * FROM account WHERE username=?, password=?;" ;
+            String sql = "SELECT * FROM account WHERE username=? AND password=?;";
             PreparedStatement ps = connection.prepareStatement(sql);
-
             ps.setString(1, account.getUsername());
             ps.setString(2, account.getPassword());
 
             ResultSet rs = ps.executeQuery();
-            while(rs.next()){
-                acc2 = new Account(rs.getString("username"), 
-                                   rs.getString("password"));
-            }
 
-            if(account.username.equals(acc2.getUsername()) && account.password.equals(acc2.getPassword())){
-                return "User found. Login succesful!";
-            }
-            else{
-                return "User not found!";
-            }
+
+            if (rs.next()){
+                int accountId = rs.getInt("account_id");
+                String username = rs.getString("username"); 
+                String password = rs.getString("password");
+                return new Account(accountId, username, password);
+            }     
         }
-
         catch(SQLException e){
             System.out.println(e.getMessage());
         }

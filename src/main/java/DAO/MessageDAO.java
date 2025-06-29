@@ -2,7 +2,7 @@ package DAO;
 
 import java.util.*;
 import java.sql.*;
-import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
+
 import Model.Account;
 import Model.Message;
 import Util.ConnectionUtil;
@@ -169,9 +169,9 @@ public class MessageDAO {
       * If the update of the message is not successful for any reason, the response status should be 400. (Client error)
       */
 
-    public Message updateMessageById(String msg, int id){
+    public Message updateMessageById(Message msg, int id){
         
-        if(msg == null || msg.isBlank() || msg.length() > 255) {
+        if(msg == null || msg.getMessage_text().isBlank() || msg.getMessage_text().length() > 255) {
             return null;
         }
 
@@ -180,7 +180,7 @@ public class MessageDAO {
             String sql = "UPDATE message SET message_text=? WHERE message_id=?;";
             PreparedStatement ps = connection.prepareStatement(sql);
 
-            ps.setString(1, msg);
+            ps.setString(1, msg.getMessage_text());
             ps.setInt(2, id);
             ps.executeUpdate();
 
