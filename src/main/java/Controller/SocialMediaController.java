@@ -50,16 +50,16 @@ public class SocialMediaController {
         app.get("/messages", this::getAllMessagesHandler);
 
         //5. GET localhost:8080/messages/{message_id}
-        app.get("/{message_id}", this::getMsgByIdHandler);
+        app.get("/messages/{message_id}", this::getMsgByIdHandler);
 
         //6. DELETE localhost:8080/messages/{message_id}
-        app.delete("/{message_id}", this::deleteMessageByIdHandler);
+        app.delete("/messages/{message_id}", this::deleteMessageByIdHandler);
 
         //7. PATCH localhost:8080/messages/{message_id}
-        app.patch("/{message_id}", this::updateMessageByIdHandler);
+        app.patch("/messages/{message_id}", this::updateMessageByIdHandler);
 
         //8. GET localhost:8080/accounts/{account_id}/messages
-        app.get("/{account_id}/messages", this::getMessagesByUserHandler);
+        app.get("/accounts/{account_id}/messages", this::getMessagesByUserHandler);
 
         
 
@@ -139,6 +139,7 @@ public class SocialMediaController {
 
         if(deletedMessage!=null){
             ctx.json(deletedMessage);
+            ctx.status(200);
         }
         else{
             ctx.status(200);
