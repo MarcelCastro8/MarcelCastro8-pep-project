@@ -184,8 +184,8 @@ public class MessageDAO {
             ps.setInt(2, id);
             ps.executeUpdate();
 
-            Message mymsg = getMessageByID(id);
-            return mymsg;
+            Message updated_msg = getMessageByID(id);
+            return updated_msg;
 
         }
         catch(SQLException e){

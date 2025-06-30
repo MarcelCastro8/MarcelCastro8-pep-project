@@ -146,7 +146,29 @@ public class SocialMediaController {
     }
 
 
+    private void updateMessageByIdHandler(Context ctx) throws JsonProcessingException{
+        int messageId = Integer.parseInt(ctx.pathParam("message_id"));
+
+        ObjectMapper mapper = new ObjectMapper();
+        Message updated_message = mapper.readValue(ctx.body(), Message.class);
+        Message newMessage = messageService.updateMessageById(updated_message, messageId);
+
+        if(newMessage!=null){
+            ctx.json(newMessage);
+        }
+        else{
+            ctx.status(400);
+        }
+
+    }
     
+    
+    private void getMessagesByUserHandler(Context ctx) throws JsonProcessingException{
+        int accountId = Integer.parseInt(ctx.pathParam("account_id"));
+        List<Message> userMessages = messageService.getMessagesByUser(accountId);
+
+        ctx.json(userMessages);  // returns [] if list is empty
+    }
 
 
 }
